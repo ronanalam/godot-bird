@@ -1,0 +1,58 @@
+[gd_scene load_steps=5 format=3 uid="uid://dkjg8lc0veurc"]
+
+[ext_resource type="Script" uid="uid://b3ex4jx6apkj8" path="res://Scripts/player.gd" id="1_v0iea"]
+[ext_resource type="Curve" uid="uid://d5okrw6b5hb4" path="res://Assets/cl_from_aoa.tres" id="2_6t5aa"]
+[ext_resource type="PackedScene" uid="uid://cnbgoiamawr0w" path="res://Scenes/crow_export.tscn" id="2_cvnsp"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_v0iea"]
+margin = 0.1
+radius = 0.15
+height = 0.5
+
+[node name="CharacterBody3D" type="CharacterBody3D"]
+rotation_edit_mode = 2
+script = ExtResource("1_v0iea")
+cl_from_aoa = ExtResource("2_6t5aa")
+
+[node name="head" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -0.16)
+rotation_edit_mode = 2
+
+[node name="velLabel3D" type="Label3D" parent="head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0.25)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="head"]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+collision_mask = 2
+spring_length = 1.5
+margin = 0.1
+
+[node name="SpringEndPosition" type="Marker3D" parent="head/SpringArm3D"]
+
+[node name="playerCam" type="Camera3D" parent="head"]
+rotation_edit_mode = 2
+
+[node name="body" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+rotation_edit_mode = 1
+shape = SubResource("CapsuleShape3D_v0iea")
+debug_color = Color(0, 0.6, 0.7, 0.42)
+
+[node name="crow_export" parent="body" instance=ExtResource("2_cvnsp")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -0.0604128, 0.15)
+
+[node name="wingL" type="Node3D" parent="body"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -0.25, -0.05, -0.068)
+rotation_edit_mode = 1
+
+[node name="wingR" type="Node3D" parent="body"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0.25, -0.05, -0.068)
+rotation_edit_mode = 1
+
+[node name="tail" type="Node3D" parent="body"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.15, -0.05)
+rotation_edit_mode = 1
+
+[node name="altitudeSpring" type="SpringArm3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+spring_length = 0.5
