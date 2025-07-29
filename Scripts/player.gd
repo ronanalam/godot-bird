@@ -14,20 +14,34 @@ extends CharacterBody3D
 @onready var label: Label3D = $head/velLabel3D
 @onready var alt: SpringArm3D = $altitudeSpring
 
+# Menu variables
+var inMenu: bool = false
+
 # Lerp Parameters
 const MOUSE_SENS: float = 0.35
 const CAMERA_LERP: float = 6.0
 const BODY_LERP: float = 6.0
-
-# Menu variables
-var inMenu: bool = false
 
 # Flight parameters
 @export var C_L: float = 0.3
 @export var C_D_induced: float = 0.3
 @export var C_D_body: float = 0.05
 @export var cl_from_aoa: Curve
-var lift_dir: Vector3 = Vector3.ZERO
+
+# Physics variables
+var lift_dir: Vector3
+var F_flap_lift: Vector3
+var F_glide_lift: Array = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var F_ground_lift: Vector3
+var F_induced_drag: Array = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+var F_body_drag: Vector3
+var F_body: Vector3
+var F_wingL: Vector3
+var F_wingR: Vector3
+var F_tail: Vector3
+var F_run_force: Vector3
+var F_run_drag: Vector3
+var F_gravity: Vector3
 
 # Physics constants
 const RUN_FORCE: float = 30.0
@@ -43,25 +57,19 @@ const MASS: float = 0.450 # kg
 const ONE_WINGED_AREA: float = (0.925/2.0) * 0.2 # m^2
 const TAIL_AREA: float = 0.69420 # m^2
 
-# Body forces
-var F_body: Vector3 = Vector3.ZERO
-var F_wingL: Vector3 = Vector3.ZERO
-var F_wingR: Vector3 = Vector3.ZERO
-var F_tail: Vector3 = Vector3.ZERO
-
 # Rotation quaternions
-var Q_pitch: Quaternion = Quaternion.IDENTITY
-var Q_roll: Quaternion = Quaternion.IDENTITY
-var Q_yaw: Quaternion = Quaternion.IDENTITY
-var Q_head_pitch: Quaternion = Quaternion.IDENTITY
-var Q_head_roll: Quaternion = Quaternion.IDENTITY
+var Q_pitch: Quaternion
+var Q_roll: Quaternion
+var Q_yaw: Quaternion
+var Q_head_pitch: Quaternion
+var Q_head_roll: Quaternion
 
 # Rotational mechanics
-var omega: Vector3 = Vector3.ZERO
-var torque: Vector3 = Vector3.ZERO
-var torque_drag: Vector3 = Vector3.ZERO
-var torque_hooke: Vector3 = Vector3.ZERO
-var torque_PID: Vector3 = Vector3.ZERO
+var omega: Vector3
+var torque: Vector3
+var torque_drag: Vector3
+var torque_hooke: Vector3
+var torque_PID: Vector3
 var I: Basis = Basis.IDENTITY
 
 
@@ -94,17 +102,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(dt: float) -> void:
-	### Define forces
-	# ! Keep this block inside _physics()
-	var F_gravity: Vector3 = get_gravity()
-	var F_flap_lift: Vector3 = Vector3.ZERO
-	var F_glide_lift: Array = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
-	var F_ground_lift: Vector3 = Vector3.ZERO
-	var F_induced_drag: Array = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
-	var F_body_drag: Vector3 = Vector3.ZERO
-	
-	var F_run_force: Vector3 = Vector3.ZERO
-	var F_run_drag: Vector3 = Vector3.ZERO
+	### Set gravity
+	F_gravity = get_gravity()
+	reset_flight_values(false)
 	
 	### Grab player input
 	var input2D:Vector2 = Input.get_vector('left', 'right', 'forward', 'back')
@@ -113,18 +113,14 @@ func _physics_process(dt: float) -> void:
 	var inputAD:float = Input.get_axis('left', 'right')
 	var direction:Vector3 = Vector3(input2D.x, 0, input2D.y).normalized()
 	
-	### Camera Interpolation & clamp acceleration
-	playerCam.position = playerCam.position.lerp(springEndPos.position, dt*CAMERA_LERP)
+	### Camera Interpolation
+	playerCam.position = playerCam.position.lerp( springEndPos.position, dt * CAMERA_LERP )
 	
 	### GROUND vs. AIR movement schemes
 	### ===--- GROUND ---===
 	if is_on_floor():
 		# Reset air stuff
-		omega = Vector3.ZERO
-		F_body = Vector3.ZERO
-		F_wingL = Vector3.ZERO
-		F_wingR = Vector3.ZERO
-		F_tail = Vector3.ZERO
+		reset_flight_values(true)
 		
 		# Jumping off of ground
 		if Input.is_action_just_pressed('flap'):
@@ -239,8 +235,8 @@ func _physics_process(dt: float) -> void:
 	DebugDraw3D.draw_arrow_ray(body.global_position, torque, torque.length(), Color.PINK, 0.1)
 	
 	# Draw bases
-	drawBasis(body)
-	#drawBasis(wingL)
+	#drawBasis(body)
+	drawBasis(wingL.get_parent())
 	#drawBasis(wingR)
 	#drawBasis(tail)
 	
@@ -277,3 +273,22 @@ func drawBasis(node: Node3D) -> void:
 	DebugDraw3D.draw_arrow_ray(node.global_position, node.basis.x, 0.5, Color.RED, 0.01)
 	DebugDraw3D.draw_arrow_ray(node.global_position, node.basis.y, 0.5, Color.GREEN, 0.01)
 	DebugDraw3D.draw_arrow_ray(node.global_position, node.basis.z, 0.5, Color.BLUE, 0.01)
+
+
+func reset_flight_values(and_rotations: bool) -> void:
+	if and_rotations:
+		torque = Vector3.ZERO
+		omega = Vector3.ZERO
+	
+	F_body = Vector3.ZERO
+	F_wingL = Vector3.ZERO
+	F_wingR = Vector3.ZERO
+	F_tail = Vector3.ZERO
+	F_flap_lift = Vector3.ZERO
+	F_glide_lift = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+	F_ground_lift = Vector3.ZERO
+	F_induced_drag = [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+	F_body_drag = Vector3.ZERO
+
+	F_run_force = Vector3.ZERO
+	F_run_drag = Vector3.ZERO
