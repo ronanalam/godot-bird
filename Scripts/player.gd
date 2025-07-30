@@ -103,7 +103,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(dt: float) -> void:
 	### Set gravity
-	F_gravity = get_gravity()
+	F_gravity = Vector3.ZERO#get_gravity()
 	reset_flight_values(false)
 	
 	### Grab player input
@@ -153,7 +153,7 @@ func _physics_process(dt: float) -> void:
 		### Flapping; attenuated if close to ground
 		var attenuation: float = sqrt(alt.get_hit_length()/alt.spring_length)
 		if Input.is_action_just_released('flap'):
-			F_flap_lift = attenuation * ( (FLAP_FORCE * -body.basis.z) + (FLAP_FORCE*0.5 * -body.basis.y) )
+			F_flap_lift = attenuation * (FLAP_FORCE * -body.basis.z)
 		
 		### Calculate lift & drag
 		var angle_of_attack: Array = [rad_to_deg(velocity.angle_to(-wingL.basis.y)), rad_to_deg(velocity.angle_to(-wingR.basis.y)) ]
@@ -171,9 +171,9 @@ func _physics_process(dt: float) -> void:
 		#F_glide_lift[0] =  
 		
 		# Collect forces acting on each body part
-		F_body = F_gravity + F_body_drag
-		F_wingL = F_flap_lift/2 + F_glide_lift[0]# + F_induced_drag[0]
-		F_wingR = F_flap_lift/2 + F_glide_lift[1]# + F_induced_drag[1]
+		F_body = F_gravity
+		F_wingL = F_flap_lift/2# + F_glide_lift[0]# + F_induced_drag[0]
+		F_wingR = -F_flap_lift/2# + F_glide_lift[1]# + F_induced_drag[1]
 		#F_tail = F_glide_lift[2] + F_induced_drag[2]
 		
 		### Angular forces
@@ -188,7 +188,7 @@ func _physics_process(dt: float) -> void:
 		
 		### Process velocity & angular velocity (omega), in the air
 		## The velocity equals integral( accel * dt ), and omega equals integral( alpha * dt )
-		velocity += (1/MASS) * reaction_CoM([body.position, wingL.position, wingR.position, tail.position], [F_body, F_wingL, F_wingR, F_tail])[0] * dt
+		velocity += (1/MASS) * reaction_CoM([Vector3.ZERO, wingL.position, wingR.position, tail.position], [F_body, F_wingL, F_wingR, F_tail])[0] * dt
 		#velocity += (1/MASS) * (F_gravity + F_flap_lift + F_ground_lift + F_glide_lift + F_body_drag + F_induced_drag) * dt
 		omega += I.inverse() * (torque+torque_drag) * dt
 		#omega += I.inverse() * (torque + torque_drag + torque_hooke + torque_PID) * dt
@@ -231,12 +231,15 @@ func _physics_process(dt: float) -> void:
 	#DebugDraw3D.draw_arrow_ray(body.global_position, F_glide_lift, F_glide_lift.length()/100, Color.DARK_BLUE, 0.01, true)
 	#DebugDraw3D.draw_arrow_ray(body.global_position, F_induced_drag, F_induced_drag.length()/10, Color.DARK_RED, 0.01)
 	#DebugDraw3D.draw_arrow_ray(body.global_position, alt.basis.z, alt.get_hit_length(), Color.AQUA, 0.1)
-	DebugDraw3D.draw_arrow_ray(body.global_position, F_body, F_body.length(), Color.WHITE, 0.1)
+	DebugDraw3D.draw_arrow_ray(body.global_position, F_body, F_body.length()/10, Color.WHITE, 0.1)
 	DebugDraw3D.draw_arrow_ray(body.global_position, torque, torque.length(), Color.PINK, 0.1)
+	DebugDraw3D.draw_arrow(body.position, body.basis*wingL.position, Color.DEEP_PINK, 0.1)
+	DebugDraw3D.draw_arrow(body.position, body.basis*wingR.position, Color.DEEP_PINK, 0.1)
+	DebugDraw3D.draw_arrow(body.position, body.basis*tail.position, Color.DEEP_PINK, 0.1)
 	
 	# Draw bases
 	#drawBasis(body)
-	drawBasis(wingL.get_parent())
+	#drawBasis(wingL.get_parent())
 	#drawBasis(wingR)
 	#drawBasis(tail)
 	
@@ -246,9 +249,9 @@ func _physics_process(dt: float) -> void:
 	DebugDraw3D.draw_arrow_ray(tail.global_position, F_tail, F_tail.length(), Color.BLACK, 0.01)
 	
 	# Draw angular terms
-	DebugDraw3D.draw_arrow_ray(body.global_position, Q_pitch.get_axis(), 50*Q_pitch.get_angle(), Color.PINK, 0.05 )
-	DebugDraw3D.draw_arrow_ray(body.global_position, Q_roll.get_axis(), 50*Q_roll.get_angle(), Color.PINK, 0.05 )
-	DebugDraw3D.draw_arrow_ray(body.global_position, Q_yaw.get_axis(), 50*Q_yaw.get_angle(), Color.PINK, 0.05 )
+	#DebugDraw3D.draw_arrow_ray(body.global_position, Q_pitch.get_axis(), 50*Q_pitch.get_angle(), Color.PINK, 0.05 )
+	#DebugDraw3D.draw_arrow_ray(body.global_position, Q_roll.get_axis(), 50*Q_roll.get_angle(), Color.PINK, 0.05 )
+	#DebugDraw3D.draw_arrow_ray(body.global_position, Q_yaw.get_axis(), 50*Q_yaw.get_angle(), Color.PINK, 0.05 )
 ### ======----- END OF _physics_process() -----===== ###
 
 
@@ -261,12 +264,14 @@ func PID(y: float, last_y:Vector3, setpoint: float, PID_vec: Vector3, dt: float)
 func reaction_CoM(force_origins: Array, forces: Array) -> Array:
 	# Takes Vec3 forces, applied anywhere on the body of the bird, 
 	# and converts them into one Array = [force, torque] at the center-of-mass.
-	var _torque: Vector3 = Vector3.ZERO
-	var _force: Vector3 = Vector3.ZERO
+	var _force := Vector3.ZERO
+	var _torque := Vector3.ZERO
+	
 	for i in range(len(forces)):
 		_force += forces[i]
-		_torque += force_origins[i].cross(forces[i])
-	return [_force, _torque]
+		_torque += (force_origins[i]).cross(forces[i])
+	
+	return [_force, body.basis*_torque]
 
 
 func drawBasis(node: Node3D) -> void:
@@ -279,6 +284,9 @@ func reset_flight_values(and_rotations: bool) -> void:
 	if and_rotations:
 		torque = Vector3.ZERO
 		omega = Vector3.ZERO
+		Q_pitch = Quaternion.IDENTITY
+		Q_roll = Quaternion.IDENTITY
+		Q_yaw = Quaternion.IDENTITY
 	
 	F_body = Vector3.ZERO
 	F_wingL = Vector3.ZERO

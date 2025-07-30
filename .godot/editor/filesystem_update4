@@ -1,2 +1,3 @@
 res://Scenes/main.tscn
-res://Scenes/target.gd
+res://Scripts/player.gd
+res://Scenes/player.tscn
