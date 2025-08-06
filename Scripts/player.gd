@@ -177,7 +177,7 @@ func _physics_process(dt: float) -> void:
 		#F_tail = F_glide_lift[2] + F_induced_drag[2]
 		
 		### Angular forces
-		torque = Vector3( inputWS*PITCH_RATE, inputAD*ROLL_RATE,  inputQE*YAW_RATE ) + reaction_CoM([wingL.position, wingR.position, tail.position], [F_wingL, F_wingR, F_tail])[1]
+		torque = Vector3( inputWS*PITCH_RATE, inputAD*ROLL_RATE,  inputQE*YAW_RATE ) + reaction_CoM([body.position, wingL.position, wingR.position, tail.position], [body.basis.inverse() * F_body, body.basis.inverse() * F_wingL, body.basis.inverse() * F_wingR, body.basis.inverse() * F_tail])[1]
 		torque_drag = -omega * TORQUE_DAMPING_CONST
 		#torque_hooke = TORQUE_HOOKE_CONST * -theta_PRY
 		
@@ -188,7 +188,7 @@ func _physics_process(dt: float) -> void:
 		
 		### Process velocity & angular velocity (omega), in the air
 		## The velocity equals integral( accel * dt ), and omega equals integral( alpha * dt )
-		velocity += (1/MASS) * reaction_CoM([Vector3.ZERO, wingL.position, wingR.position, tail.position], [F_body, F_wingL, F_wingR, F_tail])[0] * dt
+		velocity += (1/MASS) * reaction_CoM([body.position, wingL.position, wingR.position, tail.position], [F_body, F_wingL, F_wingR, F_tail])[0] * dt
 		#velocity += (1/MASS) * (F_gravity + F_flap_lift + F_ground_lift + F_glide_lift + F_body_drag + F_induced_drag) * dt
 		omega += I.inverse() * (torque+torque_drag) * dt
 		#omega += I.inverse() * (torque + torque_drag + torque_hooke + torque_PID) * dt
@@ -196,6 +196,15 @@ func _physics_process(dt: float) -> void:
 		#TODO: Fix !v.is_finite() bug
 		if !velocity.is_finite():
 			velocity = Vector3.ZERO
+		#TODO: Fix torque misaligning bug from CoM
+		if Input.is_action_just_released('flap'):
+			print( '\n reaction_CoM: ' )
+			print( reaction_CoM([body.position, wingL.position, wingR.position, tail.position], [F_body, F_wingL, F_wingR, F_tail]) )
+			print( 'force_origins' )
+			print( [body.position, wingL.position, wingR.position, tail.position] )
+			print( 'forces' )
+			print( [body.basis.inverse() * F_body, body.basis.inverse() * F_wingL, body.basis.inverse() * F_wingR, F_tail] )
+			
 		
 		Q_pitch = Quaternion(-body.basis.x, omega.x * dt)
 		Q_roll = Quaternion(-body.basis.y, omega.y * dt)
@@ -271,7 +280,7 @@ func reaction_CoM(force_origins: Array, forces: Array) -> Array:
 		_force += forces[i]
 		_torque += (force_origins[i]).cross(forces[i])
 	
-	return [_force, body.basis*_torque]
+	return [_force, body.basis * _torque]
 
 
 func drawBasis(node: Node3D) -> void:
