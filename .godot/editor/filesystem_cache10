@@ -1,5 +1,5 @@
 ea4bc82a6ad023ab7ee23ee620429895
-::res://::1754257786
+::res://::1755146071
 README.md::TextFile/TextFile::-1::1753665987::0::1::::<><><>0<>0<><>::
 ::res://addons/::1753666220
 ::res://addons/debug_draw_3d/::1753666218
@@ -23,11 +23,11 @@ cl_from_aoa.tres::Curve/Curve::273366687667341243::1753490675::0::1::::<><><>0<>
 crow_export.glb::PackedScene/PackedScene::352824058474383008::1752892902::1753774087::1::::<><><>0<>0<>1f8c715eea541ebf2ca1394ee4e83ffd<>res://.godot/imported/crow_export.glb-851536fe705d3c7c1be60c398d716d99.scn::
 golden_gate_hills_2k.hdr::CompressedTexture2D/CompressedTexture2D::4697828745843829986::1752530923::1753774086::1::::<><><>0<>0<>d9fee52eca58be1dfcd9014b2e6fcbee<>res://.godot/imported/golden_gate_hills_2k.hdr-7dd0ef285bb154d3425b8b670d9c7b3c.bptc.ctex::
 icon.svg::CompressedTexture2D/CompressedTexture2D::1603870089007776138::1746136019::1753774086::1::::<><><>0<>0<>efa92ca6027d5d0009703acae5bd01f4<>res://.godot/imported/icon.svg-8193eb3d66a1b5143b8bb4c28c1dc139.s3tc.ctex::
-::res://Scenes/::1754198846
+::res://Scenes/::1755053295
 crow_export.tscn::PackedScene/PackedScene::5687750436238861660::1753491188::0::1::::<><><>0<>0<><>::uid://fa57wtfdcqfw::::res://Assets/crow_export.glb
-main.tscn::PackedScene::6790037833937818902::1754198846::0::1::::<><><>0<>0<><>::uid://b76ws2mmj830i::::res://Assets/golden_gate_hills_2k.hdr<>uid://w36rg8kjftag::::res://Assets/icon.svg<>uid://dkjg8lc0veurc::::res://Scenes/player.tscn<>uid://bn1ur474qqlnq::::res://Scenes/target.gd
-player.tscn::PackedScene::7880153702412215332::1754198846::0::1::::<><><>0<>0<><>::uid://b3ex4jx6apkj8::::res://Scripts/player.gd<>uid://d5okrw6b5hb4::::res://Assets/cl_from_aoa.tres<>uid://cnbgoiamawr0w::::res://Scenes/crow_export.tscn
+main.tscn::PackedScene::6790037833937818902::1755053295::0::1::::<><><>0<>0<><>::uid://b76ws2mmj830i::::res://Assets/golden_gate_hills_2k.hdr<>uid://w36rg8kjftag::::res://Assets/icon.svg<>uid://dkjg8lc0veurc::::res://Scenes/player.tscn<>uid://bn1ur474qqlnq::::res://Scenes/target.gd
+player.tscn::PackedScene::7880153702412215332::1755053295::0::1::::<><><>0<>0<><>::uid://b3ex4jx6apkj8::::res://Scripts/player.gd<>uid://d5okrw6b5hb4::::res://Assets/cl_from_aoa.tres<>uid://cnbgoiamawr0w::::res://Scenes/crow_export.tscn
 target.gd::GDScript/GDScript::3353795744895334934::1753776891::0::1::::<>Area3D<><>0<>0<><>::
-::res://Scripts/::1754198846
-player.gd::GDScript::4361414605080870035::1754198846::0::1::::<>CharacterBody3D<><>0<>0<><>::
+::res://Scripts/::1754502066
+player.gd::GDScript/GDScript::4361414605080870035::1754502066::0::1::::<>CharacterBody3D<><>0<>0<><>::
 sky.gdshader::Shader/Shader::5043662686087526935::1753491497::0::1::::<><><>0<>0<><>::
